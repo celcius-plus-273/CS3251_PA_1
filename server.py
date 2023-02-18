@@ -1,11 +1,17 @@
 import socket
 import threading
 import sys
+import time
 
 
 #TODO: Implement all code for your server here
 
 # Use sys.stdout.flush() after print statemtents
+
+def repeat_msg(client):
+	while True:
+		client.send("Are you receving?".encode())
+		time.sleep(7)
 
 if __name__ == "__main__":
 	try:
@@ -29,7 +35,6 @@ if __name__ == "__main__":
 	serverSocket.listen(3)
 	print("Server is listening...")
 
-	serverIP = socket.gethostbyname(socket.gethostname())
 	num = 1
 
 	while(True):
@@ -39,13 +44,18 @@ if __name__ == "__main__":
 		
 		client.send(f"You're client {num}".encode())
 		#num += 1
+		repeat_thread = threading.Thread(target=repeat_msg, args=(client,))
+		repeat_thread.start()
+
 
 		while True:
 			msg = client.recv(1024).decode()
+			client.send(msg.encode())
+			print(f"Echoed message: {msg}")
 			if msg == "Stop":
 				break
-			client.send(msg.encode())
 		
-
+		
+		repeat_thread.join()
 		client.close()
 		print(f"Client {num} has been disconnected")
