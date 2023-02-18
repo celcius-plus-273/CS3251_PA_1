@@ -35,7 +35,7 @@ if __name__ == "__main__":
 	HOST = "127.0.0.1"
 	PORT = 1309
 
-	clientSocket.connect((HOST, PORT))
+	clientSocket.connect(("127.0.0.1", PORT))
 	print(f"Succesfully connected to server with address: {HOST}")
 
 	msg = clientSocket.recv(1024).decode()

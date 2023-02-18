@@ -25,11 +25,11 @@ if __name__ == "__main__":
 	PORT = 1309
 
 	try:
-		serverSocket.bind(("", PORT))
+		serverSocket.bind(("127.0.0.1", PORT))
 		print("Server socket was succesfully binded to port {}".format(PORT))
 		sys.stdout.flush()
 	except socket.error as err:
-		print(f"Server socket binding to port {PORT} failed")
+		print("Server socket binding to port {} failed".format(PORT))
 		sys.stdout.flush()
 
 	serverSocket.listen(3)
@@ -59,3 +59,4 @@ if __name__ == "__main__":
 		repeat_thread.join()
 		client.close()
 		print(f"Client {num} has been disconnected")
+		num += 1
