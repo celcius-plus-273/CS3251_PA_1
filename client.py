@@ -6,19 +6,17 @@ import sys
 #TODO: Implement a client that connects to your server to chat with other clients here
 
 # Use sys.stdout.flush() after print statemtents
-msg = ""
 
-def msg_input(clientSocket, last_msg):
+def msg_input(clientSocket):
 	while True:
-		print(last_msg)
-		if last_msg == ":Exit":
-			break
 		new_msg = clientSocket.recv(1024).decode()
+		if not new_msg:
+			break
 		print(f"{new_msg}")
+		sys.stdout.flush()
 
 def msg_output(clientSocket):
 	while True:
-		global msg
 		msg = input("")
 		clientSocket.send(msg.encode())
 		if msg == ":Exit":
@@ -56,27 +54,29 @@ if __name__ == "__main__":
 		#print("Client socket created succesfully")
 	except socket.error as err:
 		print("Client socket creation failed. Error: %s" %(err))
+		sys.stdout.flush()
 
 	# attemp connection to server
 	try:
-		clientSocket.connect(("127.0.0.1", PORT))
+		clientSocket.connect((HOST, PORT))
 	except socket.error as err:
 		print(f"Couldn't establich connection with host: {HOST}")
+		sys.stdout.flush()
 	
 	# send credentials for login
 	clientSocket.send(PASSWORD.encode())
 	if (clientSocket.recv(1024).decode() == "Allowed"):
 		print(f"Connected to {HOST} on port {PORT}")
+		sys.stdout.flush()
 		clientSocket.send(USERNAME.encode())
 	else:
 		print("Invalid credentials. Try again.")
 		clientSocket.close()
 		sys.exit()
 
-
 	#set up two threads: 1) receives messages 2) sends messages
 	output_thread = threading.Thread(target=msg_output, args=(clientSocket,))
-	input_thread = threading.Thread(target=msg_input, args=(clientSocket, msg, ))
+	input_thread = threading.Thread(target=msg_input, args=(clientSocket,))
 	
 	output_thread.start()
 	input_thread.start()
@@ -85,6 +85,5 @@ if __name__ == "__main__":
 	input_thread.join()
 
 	clientSocket.close()
-	print("Disconnected")
 
 		

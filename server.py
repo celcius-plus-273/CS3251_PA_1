@@ -1,7 +1,7 @@
 import socket
 import threading
 import sys
-
+import datetime
 
 #TODO: Implement all code for your server here
 
@@ -17,27 +17,49 @@ def chatroom_conection_input(all_clients, client, buffer, chat_lock, client_lock
 	while True:
 		msg = client.recv(1024).decode()
 		username = all_clients[client]
-		
-		match msg:
-			case ":Exit":
-				# delete cient from client dictionary
-				client_lock.acquire()
-				all_clients.pop(client)
-				client_lock.release()
+		if msg == ":Exit":
+			# delete cient from client dictionary
+			client_lock.acquire()
+			all_clients.pop(client)
+			client_lock.release()
 
-				# send a message informming others that client has left
-				chat_lock.acquire()
-				buffer.append(f"{username} left the chatroom")
-				chat_lock.release()
+			# send a message informming others that client has left
+			chat_lock.acquire()
+			buffer.append(f"{username} left the chatroom")
+			chat_lock.release()
 
-				# close connection with client
-				client.close()
-				break
-
-			case _:
-				chat_lock.acquire()
-				buffer.append(f"{username}: {msg}")
-				chat_lock.release()
+			# close connection with client
+			client.close()
+			break
+		elif msg == ":)":
+			chat_lock.acquire()
+			buffer.append(f"{username}: [Feeling Happy]")
+			chat_lock.release()
+		elif msg == ":(":
+			chat_lock.acquire()
+			buffer.append(f"{username}: [Feeling Sad]")
+			chat_lock.release()
+		elif msg == ":mytime":
+			mydatetime = (datetime.datetime.now()).strftime("%c")
+			chat_lock.acquire()
+			buffer.append(f"{username}: {mydatetime}")
+			chat_lock.release()
+		elif msg == "+1hr":
+			mydatetime = datetime.datetime.now()
+			myhour = mydatetime.hour
+			myday = mydatetime.day
+			if (myhour != 23):
+				mydatetime = mydatetime.replace(hour=(myhour+1))				
+			else:
+				mydatetime = mydatetime.replace(day=myday+1, hour=00)
+			chat_lock.acquire()
+			mydatetime = mydatetime.strftime("%c")				
+			buffer.append(f"{username}: {mydatetime}")
+			chat_lock.release()
+		else:
+			chat_lock.acquire()
+			buffer.append(f"{username}: {msg}")
+			chat_lock.release()
 				
 def chatroom_output(all_clients, buffer, lock):
 	while True:
@@ -46,6 +68,7 @@ def chatroom_output(all_clients, buffer, lock):
 			msg = buffer[0]
 			msg_username = find_username(msg)
 			print(msg)
+			sys.stdout.flush()
 			for client in all_clients:
 				if (all_clients[client] == msg_username):
 					continue
@@ -101,7 +124,6 @@ if __name__ == "__main__":
 
 	# start listening for clients
 	serverSocket.listen(3)
-	print("Server is listening...")
 
 	# initialize and start the chatroom output thread
 	server_output_thread = threading.Thread(target=chatroom_output, args=(all_clients, chat_buffer, chat_lock,))
@@ -120,6 +142,7 @@ if __name__ == "__main__":
 
 			# send a welcome message to all other clients and server
 			print(f"{USERNAME} joined the chatroom")
+			sys.stdout.flush()
 			for other_client in all_clients:
 				other_client.send(f"{USERNAME} joined the chatroom".encode())
 
@@ -135,7 +158,9 @@ if __name__ == "__main__":
 			client.send("Not Allowed".encode())
 			print("Client not allowed")
 			client.close()
+	
 
+	serverSocket.close()
 		
 
 
