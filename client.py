@@ -6,24 +6,15 @@ import sys
 #TODO: Implement a client that connects to your server to chat with other clients here
 
 # Use sys.stdout.flush() after print statemtents
-
-def msg_input(clientSocket):
+def input_msg(clientSocket):
 	while True:
-		new_msg = clientSocket.recv(1024).decode()
-		if not new_msg:
+		new_msg = input("")
+		clientSocket.send(new_msg.encode())
+		if new_msg == ":Exit":
 			break
-		print(f"{new_msg}")
-		sys.stdout.flush()
 
-def msg_output(clientSocket):
-	while True:
-		msg = input("")
-		clientSocket.send(msg.encode())
-		if msg == ":Exit":
-			break
 
 if __name__ == "__main__":
-	# read and parse command line arguments
 	if (len(sys.argv) != 10):
 		print("Cannot start client with given parameters")
 		sys.exit()
@@ -48,7 +39,6 @@ if __name__ == "__main__":
 		USERNAME = sys.argv[7]
 		PASSWORD = sys.argv[9]
 
-	# initialize client TCP socket
 	try:
 		clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		#print("Client socket created succesfully")
@@ -62,28 +52,38 @@ if __name__ == "__main__":
 	except socket.error as err:
 		print(f"Couldn't establich connection with host: {HOST}")
 		sys.stdout.flush()
-	
-	# send credentials for login
+
 	clientSocket.send(PASSWORD.encode())
-	if (clientSocket.recv(1024).decode() == "Allowed"):
-		print(f"Connected to {HOST} on port {PORT}")
+
+	response = clientSocket.recv(1024).decode()
+	if (response == "CONNECTED"):
+		print(f'Connected to {HOST} on port {PORT}')
 		sys.stdout.flush()
+		# send username
 		clientSocket.send(USERNAME.encode())
 	else:
-		print("Invalid credentials. Try again.")
+		print("Incorrect passcode")
+		sys.stdout.flush()
 		clientSocket.close()
 		sys.exit()
-
-	#set up two threads: 1) receives messages 2) sends messages
-	output_thread = threading.Thread(target=msg_output, args=(clientSocket,))
-	input_thread = threading.Thread(target=msg_input, args=(clientSocket,))
 	
-	output_thread.start()
+	input_thread = threading.Thread(target=input_msg, args=(clientSocket,))
 	input_thread.start()
+
+	while True:
+		new_msg = clientSocket.recv(1024).decode()
+		if not new_msg:
+			break
+		print(new_msg)
+		sys.stdout.flush()
 	
-	output_thread.join()
 	input_thread.join()
 
+	# connection has been terminated
+	# terminate socket
 	clientSocket.close()
 
-		
+
+	
+
+	
