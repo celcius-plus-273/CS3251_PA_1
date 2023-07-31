@@ -9,7 +9,7 @@ Simulates a user for the chatroom
 
 # Arguments required to initialize server and client
 ## server.py
-python server.py -start -port {enter any port number} -passcode {enter any passcode}
+``` python server.py -start -port {enter any port number} -passcode {enter any passcode} ```
 
 ## client.py
-python client.py -join -host 127.0.0.1 -port {same port number as server.py} -username {any username} -passcode {same passcode as server.py}
+``` python client.py -join -host 127.0.0.1 -port {same port number as server.py} -username {any username} -passcode {same passcode as server.py} ```
